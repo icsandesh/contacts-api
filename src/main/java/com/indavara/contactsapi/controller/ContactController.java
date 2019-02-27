@@ -1,6 +1,7 @@
 package com.indavara.contactsapi.controller;
 
 import com.indavara.contactsapi.model.Contact;
+import com.indavara.contactsapi.model.ContactList;
 import com.indavara.contactsapi.model.ContactSearchRequest;
 import com.indavara.contactsapi.service.MongoDBContactService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,10 @@ public class ContactController {
 
 
     @RequestMapping(value = "v1/contacts", method = RequestMethod.GET, produces = APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<List<Contact>> getContact(@RequestParam(value = "email",required = false) String email){
-        List<Contact> contacts = contactService.getContact(email);
-        return new ResponseEntity<>(contacts, HttpStatus.OK);
+    public ResponseEntity<ContactList> getAllContacts(@RequestParam(value = "page",required = false) Integer page,
+                                                        @RequestParam(value = "size", required = false) Integer size){
+        ContactList contactList = contactService.getContacts(page, size);
+        return new ResponseEntity<>(contactList, HttpStatus.OK);
     }
 
     @RequestMapping(value = "v1/contacts", method = RequestMethod.DELETE, produces = APPLICATION_JSON_UTF8_VALUE)

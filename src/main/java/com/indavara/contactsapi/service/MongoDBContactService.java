@@ -2,9 +2,11 @@ package com.indavara.contactsapi.service;
 
 import com.indavara.contactsapi.database.repositories.ContactMongoRepository;
 import com.indavara.contactsapi.model.Contact;
+import com.indavara.contactsapi.model.ContactList;
 import com.indavara.contactsapi.model.ContactSearchRequest;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Transactional
 @Service
-public class MongoDBContactService implements ContactService  {
+public class MongoDBContactService implements ContactService {
 
     @Autowired
     private ContactMongoRepository contactMongoRepository;
@@ -24,21 +26,33 @@ public class MongoDBContactService implements ContactService  {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private LinkGeneratorService linkGeneratorService;
+
     @Override
     public String createContact(Contact contact) {
         Contact savedEntity = contactMongoRepository.save(contact);
         return savedEntity.getContactId();
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<Contact> getContact(String email) {
-        if(!Strings.isBlank(email)) {
-            return contactMongoRepository.findByEmail(email);
-        }else {
-            return contactMongoRepository.findAll();
+    public ContactList getContacts(Integer page, Integer size) {
+
+        ContactList contactList = new ContactList();
+
+        if (page!= null && size!= null) {
+            PageRequest pageRequest = PageRequest.of(page, size);
+            Page<Contact> pagedContacts = contactMongoRepository.findAll(pageRequest);
+            contactList.setContacts(pagedContacts.getContent());
+            contactList.add(linkGeneratorService.generatePagedContactsLink(page+1, size));
+        } else {
+            contactList.setContacts(contactMongoRepository.findAll());
         }
+        return contactList;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Contact> searchContact(ContactSearchRequest contactSearchRequest) {
 
@@ -56,18 +70,20 @@ public class MongoDBContactService implements ContactService  {
 
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public void deleteContact(String email) {
+        contactMongoRepository.deleteByEmail(email);
+    }
+
     private void addInCriteria(Query query, List<String> countryCodes, String s) {
         if (isNotEmptyStrings(countryCodes)) {
             query.addCriteria(Criteria.where(s).in(countryCodes));
         }
     }
 
-    private static boolean isNotEmptyStrings(List<String> stringList){
+    private static boolean isNotEmptyStrings(List<String> stringList) {
         return !CollectionUtils.isEmpty(stringList);
     }
 
-    @Override
-    public void deleteContact(String email) {
-         contactMongoRepository.deleteByEmail(email);
-    }
 }
