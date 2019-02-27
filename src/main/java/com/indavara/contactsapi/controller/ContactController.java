@@ -2,7 +2,9 @@ package com.indavara.contactsapi.controller;
 
 import com.indavara.contactsapi.model.Contact;
 import com.indavara.contactsapi.service.ContactService;
+import com.indavara.contactsapi.service.DBContactService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +18,10 @@ public class ContactController {
 
 
     @Autowired
-    private ContactService contactService;
+    private DBContactService contactService;
 
 
-    @RequestMapping(value = "/v1/contacts", method = POST, produces = APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "v1/contacts", method = POST, produces = APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<String> createContact(@RequestBody Contact contactDTO){
 
         String contactId = contactService.createContact(contactDTO);
@@ -28,14 +30,14 @@ public class ContactController {
     }
 
 
-    @RequestMapping(value = "/v1/contacts", method = RequestMethod.GET, produces = APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "v1/contacts", method = RequestMethod.GET, produces = APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Contact> getContact(@RequestParam("email") String email){
 
         Contact contact = contactService.getContact(email);
         return new ResponseEntity<>(contact, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/v1/contacts", method = RequestMethod.DELETE, produces = APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "v1/contacts", method = RequestMethod.DELETE, produces = APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Contact> deleteContact(@RequestParam("email") String email){
         contactService.deleteContact(email);
         return new ResponseEntity<>(HttpStatus.OK);
