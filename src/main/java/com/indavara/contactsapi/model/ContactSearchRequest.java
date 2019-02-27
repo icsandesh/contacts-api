@@ -5,24 +5,23 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Document
 @Data
-public class Contact  {
+public class ContactSearchRequest {
 
-    @Id
-    private String contactId;
 
-    private String firstName;
+    private List<String> contactIds;
 
-    private String lastName;
+    private List<String> firstNames;
 
-    private String mobileNumber;
+    private List<String> lastNames;
 
-    private String countryCode;
+    private List<String> mobileNumbers;
 
-    private String email;
+    private List<String> countryCodes;
 
-    private Address address;
+    private List<String> emails;
 
 }

@@ -6,11 +6,13 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Repository
 @Transactional(propagation = Propagation.MANDATORY)
 public interface ContactMongoRepository extends MongoRepository<Contact, String> {
 
-    Contact findByEmail(String email);
+    List<Contact> findByEmail(String email);
 
     void deleteByEmail(String email);
 }
