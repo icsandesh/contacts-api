@@ -23,7 +23,6 @@ public class ContactController {
     private MongoDBContactService contactService;
 
 
-
     @RequestMapping(value = "v1/contacts", method = POST, produces = APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<String> createContact(@RequestBody Contact contactDTO){
 
@@ -33,10 +32,15 @@ public class ContactController {
 
 
     @RequestMapping(value = "v1/contacts/search", method = POST, produces = APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<List<Contact>> searchContact(@RequestBody ContactSearchRequest contactSearchRequest){
+    public ResponseEntity<ContactList> searchContact(@RequestBody ContactSearchRequest contactSearchRequest, @RequestParam(value = "page", required = false)Integer page,
+                                                       @RequestParam(value = "size", required = false) Integer size){
 
-        List<Contact> contacts = contactService.searchContact(contactSearchRequest);
-        return new ResponseEntity<>(contacts, HttpStatus.CREATED);
+
+        if(page == null ){ page =0;}
+        if(size == null) {size = 10;}
+
+        ContactList contacts = contactService.searchContact(contactSearchRequest, page, size);
+        return new ResponseEntity<>(contacts, HttpStatus.OK);
     }
 
 

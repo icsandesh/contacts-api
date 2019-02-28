@@ -8,13 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+
+import static com.indavara.contactsapi.util.CommonUtils.addInCriteria;
 
 @Transactional
 @Service
@@ -45,18 +45,20 @@ public class MongoDBContactService implements ContactService {
             PageRequest pageRequest = PageRequest.of(page, size);
             Page<Contact> pagedContacts = contactMongoRepository.findAll(pageRequest);
             contactList.setContacts(pagedContacts.getContent());
-            contactList.add(linkGeneratorService.generatePagedContactsLink(page+1, size));
+            addNextPageLink(page, size, contactList);
         } else {
             contactList.setContacts(contactMongoRepository.findAll());
         }
         return contactList;
     }
 
+
     @Transactional(readOnly = true)
     @Override
-    public List<Contact> searchContact(ContactSearchRequest contactSearchRequest) {
+    public ContactList searchContact(ContactSearchRequest contactSearchRequest, Integer page, Integer size) {
 
         Query query = new Query();
+        query.with(PageRequest.of(page, size));
         addInCriteria(query, contactSearchRequest.getCountryCodes(), "address.countryCode");
         addInCriteria(query, contactSearchRequest.getEmails(), "email");
         addInCriteria(query, contactSearchRequest.getMobileNumbers(), "mobileNumber");
@@ -66,9 +68,13 @@ public class MongoDBContactService implements ContactService {
 
         List<Contact> contacts = mongoTemplate.find(query, Contact.class);
 
-        return contacts;
-
+        ContactList contactList = new ContactList();
+        contactList.setContacts(contacts);
+        addNextPageLink(page, size, contactList);
+        return contactList;
     }
+
+
 
     @Transactional(readOnly = true)
     @Override
@@ -76,14 +82,12 @@ public class MongoDBContactService implements ContactService {
         contactMongoRepository.deleteByEmail(email);
     }
 
-    private void addInCriteria(Query query, List<String> countryCodes, String s) {
-        if (isNotEmptyStrings(countryCodes)) {
-            query.addCriteria(Criteria.where(s).in(countryCodes));
+
+    private void addNextPageLink(Integer page, Integer size, ContactList contactList) {
+        if(contactList.getContacts().size() > size) {
+            contactList.add(linkGeneratorService.generatePagedContactsLink(page + 1, size));
         }
     }
 
-    private static boolean isNotEmptyStrings(List<String> stringList) {
-        return !CollectionUtils.isEmpty(stringList);
-    }
 
 }
