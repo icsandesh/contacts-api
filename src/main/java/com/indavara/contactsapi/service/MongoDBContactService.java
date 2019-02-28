@@ -11,7 +11,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
+import javax.ws.rs.BadRequestException;
 import java.util.List;
 
 import static com.indavara.contactsapi.util.CommonUtils.addInCriteria;
@@ -31,8 +33,25 @@ public class MongoDBContactService implements ContactService {
 
     @Override
     public String createContact(Contact contact) {
+
+        List<Contact> byEmail = contactMongoRepository.findByEmail(contact.getEmail());
+        if(!CollectionUtils.isEmpty(byEmail)){
+            throw new BadRequestException("emailId is already in use");
+        }
+
         Contact savedEntity = contactMongoRepository.save(contact);
         return savedEntity.getContactId();
+    }
+
+    @Override
+    public void updateContact(Contact contact) {
+
+        List<Contact> byEmail = contactMongoRepository.findByEmail(contact.getEmail());
+        if(CollectionUtils.isEmpty(byEmail)){
+            throw new BadRequestException("cannot update. Email does not exist");
+        }
+
+        contactMongoRepository.save(contact);
     }
 
     @Transactional(readOnly = true)

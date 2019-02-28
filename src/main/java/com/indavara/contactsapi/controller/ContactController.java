@@ -9,10 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.validation.Valid;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 
 @RestController
@@ -24,7 +25,7 @@ public class ContactController {
 
 
     @RequestMapping(value = "v1/contacts", method = POST, produces = APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> createContact(@RequestBody Contact contactDTO){
+    public ResponseEntity<String> createContact(@RequestBody @Valid Contact contactDTO){
 
         String contactId = contactService.createContact(contactDTO);
         return new ResponseEntity<>(contactId, HttpStatus.CREATED);
@@ -41,6 +42,13 @@ public class ContactController {
 
         ContactList contacts = contactService.searchContact(contactSearchRequest, page, size);
         return new ResponseEntity<>(contacts, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "v1/contacts/{contactId}", method = PUT, produces = APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<String> updateContact(@RequestBody @Valid Contact contact){
+
+        contactService.updateContact(contact);
+        return new ResponseEntity<>("updated successfully", HttpStatus.OK);
     }
 
 

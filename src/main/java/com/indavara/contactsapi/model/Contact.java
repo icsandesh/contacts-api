@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.hateoas.ResourceSupport;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Document
@@ -14,14 +16,14 @@ public class Contact {
     @Id
     private String contactId;
 
+    @NotBlank(message = "firstName cannot be blank")
     private String firstName;
 
     private String lastName;
 
     private String mobileNumber;
 
-    private String countryCode;
-
+    @Email(message = "valid email is mandatory")
     private String email;
 
     private Address address;
