@@ -4,6 +4,7 @@ import com.indavara.contactsapi.model.Contact;
 import com.indavara.contactsapi.model.ContactList;
 import com.indavara.contactsapi.model.ContactSearchRequest;
 import com.indavara.contactsapi.service.MongoDBContactService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 
 @RestController
+@Api(value = "Contact book API", description = "Crud operations on contact book.")
 public class ContactController {
 
 
