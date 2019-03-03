@@ -16,13 +16,17 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.hateoas.Link;
 
 import javax.ws.rs.BadRequestException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,8 +38,14 @@ public class MongoDBContactServiceTest {
     @Mock
     private MongoTemplate mongoTemplate;
 
+    @Mock
+    private LinkGeneratorService linkGeneratorService;
+
     @InjectMocks
     private MongoDBContactService mongoDBContactService;
+
+
+    public static final String ID = "12313ID";
 
 
     @Before
@@ -51,6 +61,20 @@ public class MongoDBContactServiceTest {
         mongoDBContactService.createContact(contactMock);
     }
 
+    @Test
+    public void verifyCreateContactSuccessFlow() {
+
+        Contact contactMock = getContactMock();
+        Contact savedContactMock = getContactMock();
+        savedContactMock.setContactId(ID);
+        when(contactMongoRepository.findByEmail(contactMock.getEmail())).thenReturn(Collections.emptyList());
+        when(contactMongoRepository.save(contactMock)).thenReturn(savedContactMock);
+
+        String contact = mongoDBContactService.createContact(contactMock);
+        assertEquals(contact, ID);
+        verify(contactMongoRepository).save(contactMock);
+    }
+
     @Test(expected = Exception.class)
     public void verifyBadRequestIfEmailNotPresentInCreateRequest() {
         Contact contactMock = getContactMock();
@@ -63,6 +87,29 @@ public class MongoDBContactServiceTest {
         Contact contactMock = getContactMock();
         contactMock.setFirstName(null);
         mongoDBContactService.createContact(contactMock);
+    }
+
+    @Test
+    public void verifyUpdateContactSuccessFlow() {
+
+        Contact contactMock = getContactMock();
+        contactMock.setContactId(ID);
+        when(contactMongoRepository.findByEmail(contactMock.getEmail())).thenReturn(Arrays.asList(contactMock));
+        when(contactMongoRepository.save(contactMock)).thenReturn(contactMock);
+
+        mongoDBContactService.updateContact(contactMock);
+
+        verify(contactMongoRepository).save(contactMock);
+    }
+
+    @Test
+    public void verifyDeleteContactSuccessFlow() {
+
+        Contact contactMock = getContactMock();
+        contactMock.setContactId(ID);
+
+        mongoDBContactService.deleteContact(contactMock.getEmail());
+        verify(contactMongoRepository).deleteByEmail(contactMock.getEmail());
     }
 
 
@@ -89,6 +136,37 @@ public class MongoDBContactServiceTest {
         ContactList contactList = mongoDBContactService.searchContact(getContractRequestMock(), 0, 5);
         verify(mongoTemplate).find(mockQUery, Contact.class);
         assertEquals(contactList, getContactListMock());
+        assertEquals(contactList.getLinks().size(), 0);
+    }
+
+    @Test
+    public void verifyIfNextLinksGetGeneratedIncaseQueryOutputIsMoreThanInputPageSize(){
+
+        ContactSearchRequest contractRequestMock = getContractRequestMock();
+
+        Query mockQUery = new Query();
+        mockQUery.addCriteria(Criteria.where("email").in(contractRequestMock.getEmails()));
+        mockQUery.addCriteria(Criteria.where("mobileNumber").in(contractRequestMock.getMobileNumbers()));
+        mockQUery.with(PageRequest.of(0, 5));
+
+        Link mockLink = new Link("nextPageLink");
+
+        when(linkGeneratorService.generatePagedContactsLink(1, 5)).thenReturn(mockLink);
+        when(mongoTemplate.find(mockQUery, Contact.class)).thenReturn(getMultipleMockContacts());
+
+        ContactList contactList = mongoDBContactService.searchContact(contractRequestMock, 0, 5);
+        verify(mongoTemplate).find(mockQUery, Contact.class);
+        assertEquals(contactList.getContacts(), getMultipleMockContacts());
+        assertTrue(contactList.getLinks().size() > 0 );
+    }
+
+    private List<Contact> getMultipleMockContacts() {
+        List<Contact> contactList = new ArrayList<>();
+
+        for(int i =0;i<10;i++){
+            contactList.add(getContactMock());
+        }
+        return contactList;
     }
 
     private ContactSearchRequest getContractRequestMock() {

@@ -10,7 +10,7 @@ public interface ContactService {
 
     void updateContact(Contact contact);
 
-    ContactList getAllContactsPaginated(Integer page, Integer size);
+    ContactList getAllContacts(Integer page, Integer size);
 
     ContactList searchContact(ContactSearchRequest contactSearchRequest, Integer page, Integer size);
 

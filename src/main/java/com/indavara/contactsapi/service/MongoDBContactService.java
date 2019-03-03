@@ -8,15 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.ws.rs.BadRequestException;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.indavara.contactsapi.util.CommonUtils.addInCriteria;
+import static com.indavara.contactsapi.util.CommonUtils.buildInCriteria;
 
 @Transactional
 @Service
@@ -56,7 +58,7 @@ public class MongoDBContactService implements ContactService {
 
     @Transactional(readOnly = true)
     @Override
-    public ContactList getAllContactsPaginated(Integer page, Integer size) {
+    public ContactList getAllContacts(Integer page, Integer size) {
 
         ContactList contactList = new ContactList();
 
@@ -78,19 +80,31 @@ public class MongoDBContactService implements ContactService {
 
         Query query = new Query();
         query.with(PageRequest.of(page, size));
-        addInCriteria(query, contactSearchRequest.getCountryCodes(), "address.countryCode");
-        addInCriteria(query, contactSearchRequest.getEmails(), "email");
-        addInCriteria(query, contactSearchRequest.getMobileNumbers(), "mobileNumber");
-        addInCriteria(query, contactSearchRequest.getFirstNames(), "firstName");
-        addInCriteria(query, contactSearchRequest.getLastNames(), "lastName");
-        addInCriteria(query, contactSearchRequest.getContactIds(), "contactId");
+
+        List<Criteria> queryCriteriaList = buildQueryCriteria(contactSearchRequest);
+        queryCriteriaList.forEach(query::addCriteria);
 
         List<Contact> contacts = mongoTemplate.find(query, Contact.class);
 
+        return buildSearchResponse(page, size, contacts);
+    }
+
+    private ContactList buildSearchResponse(Integer page, Integer size, List<Contact> contacts) {
         ContactList contactList = new ContactList();
         contactList.setContacts(contacts);
         addNextPageLink(page, size, contactList);
         return contactList;
+    }
+
+    private List<Criteria> buildQueryCriteria(ContactSearchRequest contactSearchRequest) {
+        List<Criteria> queryCriteriaList = new ArrayList<>();
+        queryCriteriaList.addAll(buildInCriteria("address.countryCode", contactSearchRequest.getCountryCodes()));
+        queryCriteriaList.addAll(buildInCriteria("email", contactSearchRequest.getEmails()));
+        queryCriteriaList.addAll(buildInCriteria("mobileNumber", contactSearchRequest.getMobileNumbers()));
+        queryCriteriaList.addAll(buildInCriteria("firstName", contactSearchRequest.getFirstNames()));
+        queryCriteriaList.addAll(buildInCriteria("lastName", contactSearchRequest.getLastNames()));
+        queryCriteriaList.addAll(buildInCriteria("contactId", contactSearchRequest.getContactIds()));
+        return queryCriteriaList;
     }
 
 

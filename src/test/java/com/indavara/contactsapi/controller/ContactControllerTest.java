@@ -81,11 +81,11 @@ public class ContactControllerTest {
     @Test
     public void getAllContacts() {
 
-        when(mongoDBContactService.getAllContactsPaginated(0,5)).thenReturn(getContactListMock());
+        when(mongoDBContactService.getAllContacts(0,5)).thenReturn(getContactListMock());
 
         ResponseEntity<ContactList> responseEntity = contactController.getAllContacts(0,5);
 
-        verify(mongoDBContactService).getAllContactsPaginated(0,5);
+        verify(mongoDBContactService).getAllContacts(0,5);
 
         assertEquals(responseEntity.getBody(), getContactListMock());
         assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);

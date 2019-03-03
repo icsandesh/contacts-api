@@ -1,18 +1,20 @@
 package com.indavara.contactsapi.util;
 
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 public class CommonUtils {
 
-    public static void addInCriteria(Query query, List<String> countryCodes, String s) {
-        if (isNotEmptyStrings(countryCodes)) {
-            query.addCriteria(Criteria.where(s).in(countryCodes));
+    public static List<Criteria> buildInCriteria(String searchKey, List<String> searchValues) {
+        List<Criteria> criteria = new ArrayList<>();
+        if (isNotEmptyStrings(searchValues)) {
+          criteria.add(Criteria.where(searchKey).in(searchValues));
         }
+       return criteria;
     }
 
     public static boolean isNotEmptyStrings(List<String> stringList) {

@@ -57,7 +57,7 @@ public class ContactController {
     @RequestMapping(value = "v1/contacts", method = RequestMethod.GET, produces = APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<ContactList> getAllContacts(@RequestParam(value = "page",required = false) Integer page,
                                                         @RequestParam(value = "size", required = false) Integer size){
-        ContactList contactList = contactService.getAllContactsPaginated(page, size);
+        ContactList contactList = contactService.getAllContacts(page, size);
         return new ResponseEntity<>(contactList, HttpStatus.OK);
     }
 
