@@ -34,11 +34,11 @@ public class MongoDBContactService implements ContactService {
     @Override
     public String createContact(Contact contact) {
 
-        List<Contact> byEmail = contactMongoRepository.findByEmail(contact.getEmail());
-        if(!CollectionUtils.isEmpty(byEmail)){
+
+        List<Contact> byEmailContacts = contactMongoRepository.findByEmail(contact.getEmail());
+        if(!CollectionUtils.isEmpty(byEmailContacts)){
             throw new BadRequestException("emailId is already in use");
         }
-
         Contact savedEntity = contactMongoRepository.save(contact);
         return savedEntity.getContactId();
     }
@@ -56,7 +56,7 @@ public class MongoDBContactService implements ContactService {
 
     @Transactional(readOnly = true)
     @Override
-    public ContactList getContacts(Integer page, Integer size) {
+    public ContactList getAllContactsPaginated(Integer page, Integer size) {
 
         ContactList contactList = new ContactList();
 
@@ -92,7 +92,6 @@ public class MongoDBContactService implements ContactService {
         addNextPageLink(page, size, contactList);
         return contactList;
     }
-
 
 
     @Transactional(readOnly = true)
