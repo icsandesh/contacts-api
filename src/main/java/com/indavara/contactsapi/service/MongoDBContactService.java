@@ -60,7 +60,7 @@ public class MongoDBContactService implements ContactService {
 
         ContactList contactList = new ContactList();
 
-        if (page!= null && size!= null) {
+        if (page != null && size != null) {
             PageRequest pageRequest = PageRequest.of(page, size);
             Page<Contact> pagedContacts = contactMongoRepository.findAll(pageRequest);
             contactList.setContacts(pagedContacts.getContent());

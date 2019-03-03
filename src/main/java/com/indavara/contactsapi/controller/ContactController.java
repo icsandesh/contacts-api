@@ -38,7 +38,7 @@ public class ContactController {
 
 
         if(page == null ){ page =0;}
-        if(size == null) {size = 10;}
+        if(size == null) {size = 10;} // size defaulted to 10
 
         ContactList contacts = contactService.searchContact(contactSearchRequest, page, size);
         return new ResponseEntity<>(contacts, HttpStatus.OK);
